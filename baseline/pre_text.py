@@ -7,24 +7,24 @@
 import pandas as pd
 
 
-date = []
-home_red = []
-home_yellow = []
-home_team = []
-home_goal = []
-away_goal = []
-away_team = []
-away_yellow = []
-away_red = []
-home_goal_half = []
-away_goal_half = []
-home_bet = []
-goals_bet = []
-footGoal_bet = []
-footGoal_home_half = []
-footGoal_away_half = []
-footGoal_home = []
-footGoal_away = []
+date = []                   #比赛日期
+home_red = []               #主队红牌
+home_yellow = []            #主队黄牌
+home_team = []              #主队队名
+home_goal = []              #主队进球
+away_goal = []              #客队进球
+away_team = []              #客队队名
+away_yellow = []            #客队黄牌
+away_red = []               #客队红牌
+home_goal_half = []         #主队半场进球
+away_goal_half = []         #客队半场进球
+home_bet = []               #主队让球个数
+goals_bet = []              #全场博彩大小球
+footGoal_bet = []           #全场角球博彩大小球
+footGoal_home_half = []     #主队半场角球个数
+footGoal_away_half = []     #客队半场角球个数
+footGoal_home = []          #主队全场角球个数
+footGoal_away = []          #客队全场角球个数
 
 f = open("/Users/kunyue/project_personal/soccer/data/巴西保杯", "r")
 lines = f.readlines()
