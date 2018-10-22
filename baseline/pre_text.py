@@ -26,15 +26,14 @@ footGoal_away_half = []
 footGoal_home = []
 footGoal_away = []
 
-f = open("../data/data_maches.txt", "r")
+f = open("/Users/kunyue/project_personal/soccer/data/巴西保杯", "r")
 lines = f.readlines()
 for line in lines:
-    # print(line)
     line = line.strip()
     line = line.replace('-', '-0')
     line_list = line.split('\t')
     if len(line_list) not in [11,12]:
-        print(line)
+        print(len(line))
     if len(line_list)==11:
         line_list.insert(1," ")
     elif len(line_list)<11:
@@ -42,9 +41,14 @@ for line in lines:
     else:
         date.append(line_list[2])
         if len(line_list[3].split(' '))>1:
-            home_red.append(int(int(line_list[3].split(' ')[0]) / 10 % 10))
-            home_yellow.append(int(int(line_list[3].split(' ')[0]) % 10))
-            home_team.append(''.join(line_list[3].split(' ')[1:]))
+            try:
+                yellow_red_int = int(line_list[3].split(' ')[0])
+                home_team.append(''.join(line_list[3].split(' ')[1:]))
+            except ValueError:
+                yellow_red_int = 0
+                home_team.append(''.join(line_list[3].split(' ')[0:]))
+            home_red.append(int(yellow_red_int / 10 % 10))
+            home_yellow.append(int(yellow_red_int % 10))
         else:
             home_team.append(line_list[3])
             home_yellow.append(0)
@@ -52,9 +56,14 @@ for line in lines:
         home_goal.append(line_list[4].split(' ')[0])
         away_goal.append(line_list[4].split(' ')[2])
         if len(line_list[5].split(' '))>1:
-            away_team.append(''.join(line_list[5].split(' ')[0:-1]))
-            away_yellow.append(int(int(line_list[5].split(' ')[-1]) / 10 % 10))
-            away_red.append(int(int(line_list[5].split(' ')[-1]) % 10))
+            try:
+                yellow_red_int = int(line_list[5].split(' ')[-1])
+                away_team.append(''.join(line_list[5].split(' ')[0:-1]))
+            except:
+                yellow_red_int = 0
+                away_team.append(''.join(line_list[5].split(' ')[0:]))
+            away_red.append(int(yellow_red_int / 10 % 10))
+            away_yellow.append(int(yellow_red_int % 10))
         else:
             away_team.append(line_list[5])
             away_yellow.append(0)
@@ -91,5 +100,5 @@ data = {
 }
 
 df = pd.DataFrame(data)
-df.to_csv('../data/output/maches_go.csv')
+df.to_csv('/Users/kunyue/project_personal/soccer/data/output/巴西保杯.csv')
 
