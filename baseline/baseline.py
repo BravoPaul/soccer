@@ -39,8 +39,6 @@ pd.set_option('display.width', None)
 
 yc_match_data = pd.read_csv("../data/英超.csv")
 
-m_2018 = yc_match_data
-
 
 # 队伍特征
 def f_onehot(pd_origin):
@@ -65,42 +63,22 @@ def f_home_away(pd_origin):
     return pd_goal[['date', 'home_team', 'away_team', 'l_home_goal', 'l_away_goal', 'diff_time']]
 
 
-def columns_name(x):
-    if x.find('away') >= 0:
-        return x.replace('away', 'home')
-    if x.find('home') >= 0:
-        return x.replace('home', 'away')
-    return x
 
 
 
 
-def f_3_match_ha(pd_origin_o,total_match,is_all):
 
-    if is_all==1:
+def f_match_ha(pd_all,total_match,home_away):
 
-        pd_copy = pd_origin_o.copy()
-        pd_copy.columns = pd_copy.columns.map(lambda x: columns_name(x))
-        pd_origin_o['flag'] = 1
-        pd_copy['flag'] = 0
-        pd_all = pd.concat([pd_origin_o, pd_copy])
-
-    elif is_all==0:
-        pd_all = pd_origin_o
-
-    else:
-        print("wrong value, is all must be 1 or 0")
-        exit(1)
-
-    pd_goal = pd_all.sort_values(by=['home_team', 'away_team', 'date'])
-    grp = pd_goal.groupby(['home_team', 'away_team'])
+    pd_goal = pd_all.sort_values(by=home_away+['date'])
+    grp = pd_goal.groupby(home_away)
 
     def get_last_f(x):
         result = []
         for item in range(total_match):
             temps = np.nan_to_num(x.apply(lambda i: i.shift(item+1)).values)
             result.append(temps)
-        return pd.Series(np.sum(result, axis=0) / 3, index=pd_goal.index)
+        return pd.Series(np.sum(result, axis=0) / total_match, index=pd_goal.index)
 
     list_f = [grp['home_goal'], grp['away_goal'],
               grp['home_yellow'], grp['home_red'],
@@ -109,38 +87,29 @@ def f_3_match_ha(pd_origin_o,total_match,is_all):
               ]
 
     result_f = list(map(get_last_f, list_f))
-    pd_goal['l_home_goal'] = result_f[0]
-    pd_goal['l_away_goal'] = result_f[1]
-    pd_goal['l_home_yellow'] = result_f[2]
-    pd_goal['l_home_red'] = result_f[3]
-    pd_goal['l_away_yellow'] = result_f[4]
-    pd_goal['l_away_red'] = result_f[5]
-    pd_goal['l_flag'] = result_f[6]
-    pd_goal['l_net_goal'] = (pd_goal['l_home_goal'] - pd_goal['l_away_goal']) / (
-            pd_goal['l_home_goal'] + pd_goal['l_away_goal'] + 0.0001)
-    pd_goal['l_net_yellow'] = (pd_goal['l_home_yellow'] - pd_goal['l_away_yellow']) / (
-            pd_goal['l_home_yellow'] + pd_goal['l_away_yellow'] + 0.0001)
+    pd_goal['f_home_goal'] = result_f[0]
+    pd_goal['f_away_goal'] = result_f[1]
+    pd_goal['f_home_yellow'] = result_f[2]
+    pd_goal['f_home_red'] = result_f[3]
+    pd_goal['f_away_yellow'] = result_f[4]
+    pd_goal['f_away_red'] = result_f[5]
+    pd_goal['f_flag'] = result_f[6]
+    pd_goal['f_net_goal'] = (pd_goal['f_home_goal'] - pd_goal['f_away_goal']) / (
+            pd_goal['f_home_goal'] + pd_goal['f_away_goal'] + 0.0001)
+    pd_goal['f_net_yellow'] = (pd_goal['f_home_yellow'] - pd_goal['f_away_yellow']) / (
+            pd_goal['f_home_yellow'] + pd_goal['f_away_yellow'] + 0.0001)
     result = []
-    for num in (1, 2, 3):
-        pd_goal['l_date'] = grp['date'].apply(lambda i: i.shift(num))
-        temps = np.nan_to_num(((pd.to_datetime(pd_goal['date'], format='%y/%m/%d') - pd.to_datetime(pd_goal['l_date'],
+    for item in range(total_match):
+        pd_goal['f_date'] = grp['date'].apply(lambda i: i.shift(item+1))
+        temps = np.nan_to_num(((pd.to_datetime(pd_goal['date'], format='%y/%m/%d') - pd.to_datetime(pd_goal['f_date'],
                                                                                                     format='%y/%m/%d')).map(
             lambda x: x.days)).values)
         result.append(temps)
-    pd_goal['l_diff_time'] = pd.Series(np.sum(result, axis=0) / 3, index=pd_goal.index)
-
-    def columns_traite(x,ss):
-        if x.find('l_'):
-            return x+'_'+ ss
-        else:
-            return x
-
-    if is_all==1:
-        pd_goal.columns = pd_goal.columns.map(lambda x: columns_traite(x,'a'))
-
-    pd_goal.columns = pd_goal.columns.map(lambda x: columns_traite(x, str(total_match)))
+    pd_goal['f_diff_time'] = pd.Series(np.sum(result, axis=0) / total_match, index=pd_goal.index)
 
     return pd_goal
+
+
 
 
 def train_maker():
@@ -211,8 +180,44 @@ def train():
     print("准确率：", metrics.accuracy_score(ground_truth, pred))
 
 
-f_a_h = f_3_match_ha(m_2018,1,1).fillna(0)
+def data_pre_trait(pd_origin_o,is_all=False):
+    if not is_all:
+        pd_origin_o['flag'] = 1
+        return pd_origin_o
+    def columns_name(x):
+        if x.find('away') >= 0:
+            return x.replace('away', 'home')
+        if x.find('home') >= 0:
+            return x.replace('home', 'away')
+        return x
+    pd_copy = pd_origin_o.copy()
+    pd_copy.columns = pd_copy.columns.map(lambda x: columns_name(x))
+    pd_origin_o['flag'] = 1
+    pd_copy['flag'] = 0
+    pd_all = pd.concat([pd_origin_o, pd_copy])
+    return pd_all
 
-f_a_h.to_csv('../data/temp/f_3_match_ha.csv')
 
-print(f_a_h)
+def data_back_trait(pd_goal,ss):
+    def columns_traite(x):
+        if x.find('f_')>=0:
+            return x+'_'+ ss
+        else:
+            return x
+    pd_goal.columns = pd_goal.columns.map(columns_traite)
+    return pd_goal
+
+
+pd_all = data_pre_trait(yc_match_data)
+
+
+f_a_h = f_match_ha(pd_all,3,['home_team']).fillna(0)
+
+houzhui = 'all_h_3'
+
+pd_feature = data_back_trait(f_a_h,houzhui)
+
+
+pd_feature.to_csv('../data/temp/'+houzhui+'.csv')
+
+# print(f_a_h)
