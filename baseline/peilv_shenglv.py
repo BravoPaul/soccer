@@ -36,17 +36,17 @@ for p in ps:
             e += value*pow(g_l,i)
         e = e*g_w-np.array(touzi).sum()*pow(g_l,len(profits))
         if e>0:
-            # print(p,"    ",g_w,"    ",p/g_w)
+            print(p,"    ",g_w,"    ",p/g_w)
             break
 
 
 
 # 计算能挣多少钱
-touzie = 1000
-gailv = 0.68
-peilv = 1.9
-profit = gailv*touzie*(peilv-1)-(touzie)*(1-gailv)
-print(profit)
+# touzie = 1000
+# gailv = 0.68
+# peilv = 1.9
+# profit = gailv*touzie*(peilv-1)-(touzie)*(1-gailv)
+# print(profit)
 
 
 
