@@ -8,47 +8,34 @@ from sklearn.metrics import confusion_matrix
 from sklearn import metrics
 import warnings
 
-'''
-date  
-home_red  
-home_yellow  
-home_team  
-home_goal  
-away_goal  
-away_team  
-away_yellow  
-away_red  
-home_goal_half  
-away_goal_half  
-main_bet  
-goals_bet  
-footGoal_bet  
-footGoal_home_half  
-footGoal_away_half  
-footGoal_home  
-footGoal_away
-home_rank
-away_rank
 
 '''
+比分特征主要从这么几个方面来刻画主客队的信息：
 
-pd.set_option('display.max_rows', 500)
-pd.set_option('display.max_columns', 500)
-pd.set_option('display.width', 1000)
+时间间隔
 
-warnings.filterwarnings(action='ignore', category=DeprecationWarning)
-pd.set_option('display.width', None)
+1，主队（客队）进攻能力
+1.1，球队算数平均进攻能力（得分和角球平均值）
+1.2，球队加权平均进攻能力（考虑到对面球队的实力）
+1.3，球队目前最大的进攻能力（得分最大值）
+1.4，球队加权平均最大的进攻能力（考虑到对面球队的实力）
 
-yc_match_data = pd.read_csv("../data/英超/英超.csv")
+2，主队（客队）防守能力
+1.1，对方球队算数平均进攻能力（得分和角球平均值）
+1.2，对方球队加权平均进攻能力（考虑到对面球队的实力）
+1.3，对方球队目前最大的进攻能力（得分最大值）
+1.4，对方球队加权平均最大的进攻能力（考虑到对面球队的实力）
+
+3，主客队防守吃牌能力
+4，主队（客队）爆冷概率程度
+5，主队（客队）强弱对心理加成
+6，主客场
+7，球队伤残，稳定性（暂时不做）
+8，求战欲望（这个不做）
+'''
 
 
-# 队伍特征
-def f_onehot(pd_origin):
-    return pd.get_dummies(pd_origin)
 
-
-
-# 比赛本身的信息，基础特征
 def util_match_ha(pd_all, total_match, home_away):
     pd_goal = pd_all.sort_values(by=home_away + ['date'])
     grp = pd_goal.groupby(home_away)
@@ -100,50 +87,6 @@ def util_match_ha(pd_all, total_match, home_away):
     return pd_goal
 
 
-def train_maker():
-    pass
-
-
-def label_maker(pd_origin):
-    def label_go(a, b):
-        if a - b > 0:
-            return 1
-        elif a - b == 0:
-            return 0
-        else:
-            return -1
-
-    pd_origin['label'] = pd_origin.apply(lambda x: label_go(x['home_goal'], x['away_goal']), axis=1)
-    return pd_origin[['date', 'home_team', 'away_team', 'label']]
-
-
-# 时间特征
-class dateEncoder(TransformerMixin):
-    def fit(self, X, y=None):
-        return self
-
-    def transform(self, X):
-        dt = pd.datetimeIndex(X.flatten())
-        date_data = pd.DataFrame(np.transpose([dt.year, dt.month, dt.day]))
-        return date_data
-
-
-
-
-def data_pre_trait(pd_origin_o, grp_list):
-    pd_origin_o = pd_origin_o.sort_values(by=grp_list + ['date'], ascending=False)
-    index_m = pd_origin_o[grp_list + ['date']].groupby(grp_list).head(1)
-
-    def columns_name(x):
-        if x.find('away') >= 0:
-            return x.replace('away', 'home')
-        if x.find('home') >= 0:
-            return x.replace('home', 'away')
-        return x
-
-    index_m_reverse = index_m.copy()
-    index_m_reverse.columns = index_m_reverse.columns.map(lambda x: columns_name(x))
-    return index_m, index_m_reverse
 
 
 def data_back_trait(pd_goal, ss):
@@ -159,6 +102,11 @@ def data_back_trait(pd_goal, ss):
 
     pd_goal.columns = pd_goal.columns.map(columns_traite)
     return pd_goal[f_names]
+
+
+
+
+
 
 
 def f_home_away(pd_real):
@@ -302,124 +250,4 @@ def f_away(pd_real):
     # pd_feature = pd.merge(pd_feature_ha_r, pd_feature_ha_f, how='left', on=['away_team', 'date'])
 
     return pd_feature_ha_r
-
-
-
-
-
-def train():
-    def main_bet_predictor(x):
-        if x<0:
-            return 1
-        elif x>0:
-            return -1
-        else:
-            return 0
-
-    match_go = pd.read_csv('../data/temp/' + 'f_ha_h_a_goals_toal' + '.csv')
-    match_last = pd.read_csv('../data/temp/' + 'f_ha_h_a_last_goals_toal' + '.csv')
-    match = pd.concat([match_go,match_last],axis=0)
-    label = match['label'].values
-
-    # y_bet = match['main_bet'].map(main_bet_predictor).values
-
-    del match['label']
-    del match['main_bet']
-    del match['goals_bet']
-    del match['footGoal_bet']
-    train_data = match.values
-
-    # 多分类
-    kf = KFold(n_splits=5, shuffle=True, random_state=1234)
-    for train_index, test_index in kf.split(train_data):
-        xgboost_model = xgb.XGBClassifier().fit(train_data[train_index], label[train_index])
-        # xgb.XGBRegressor
-        # 预测结果
-        pred = xgboost_model.predict(train_data[test_index])
-        # 标准答案
-        ground_truth = label[test_index]
-    print("混淆矩阵:")
-    print(confusion_matrix(ground_truth, pred))
-    print("准确率：")
-    print(metrics.accuracy_score(ground_truth, pred))
-
-    print("--------------分割线---------------")
-
-    # print("混淆矩阵:")
-    # print(confusion_matrix(label, y_bet))
-    # print("准确率：")
-    # print(metrics.accuracy_score(label, y_bet))
-
-
-
-
-
-
-def win_lose_label(x):
-    if x['home_goal']>x['away_goal']:
-        return 1
-    elif x['home_goal']<x['away_goal']:
-        return -1
-    else:
-        return 0
-
-
-def big_small_label(x):
-    if (x['home_goal']+x['away_goal'])-x['goals_bet']>0:
-        return 1
-    elif (x['home_goal']+x['away_goal'])-x['goals_bet']<0:
-        return -1
-    else:
-        return 0
-
-def goals_toal_label(x):
-    goals = x['home_goal']+x['away_goal']
-    if goals>=0 and goals<=1 :
-        return 0
-    elif goals>=2 and goals<=3:
-        return 1
-    else:
-        return 2
-
-#
-#
-f_home_away_d = f_home_away(yc_match_data)
-f_home_d = f_home(yc_match_data)
-f_away_d = f_away(yc_match_data)
-# f_temp = pd.merge(f_home_away_d, f_home_d, how='left', on=['home_team', 'date'])
-# f_ha_h_a = pd.merge(f_temp, f_away_d, how='left', on=['away_team', 'date'])
-#
-merge_data = pd.merge(f_ha_h_a, yc_match_data, how='left', on=['home_team', 'away_team', 'date'])
-# merge_data['label'] = merge_data.apply(lambda row: goals_toal_label(row), axis=1)
-# train_data = merge_data.drop(['home_team', 'away_team', 'date', 'id', 'match', 'home_goal', 'away_goal'], axis=1)
-# train_data.to_csv('../data/temp/' + 'f_ha_h_a_goals_toal' + '.csv')
-#
-
-#
-# # 上一个比赛季训练集制作
-# pd_all = pd.read_csv("../data/英超/英超.csv")
-# pd_goal = pd_all.sort_values(by=['home_team','away_team','date'],ascending=False)
-# grp = pd_goal.groupby(['home_team','away_team']).nth(1).reset_index()
-# last_matches = grp[['home_team','away_team','date']]
-# last_matches.rename(columns={'date':'date_f'},inplace=True)
-# yc_match_data_last = pd.merge(yc_match_data,last_matches,how='left',on=['home_team','away_team'])
-# yc_match_data_last = yc_match_data_last[yc_match_data_last['date']<=yc_match_data_last['date_f']]
-# del yc_match_data_last['date_f']
-#
-# f_home_away_d = f_home_away(yc_match_data_last)
-# f_home_d = f_home(yc_match_data_last)
-# f_away_d = f_away(yc_match_data_last)
-# f_temp = pd.merge(f_home_away_d, f_home_d, how='left', on=['home_team', 'date'])
-# f_ha_h_a = pd.merge(f_temp, f_away_d, how='left', on=['away_team', 'date'])
-#
-# merge_data = pd.merge(f_ha_h_a, yc_match_data_last, how='left', on=['home_team', 'away_team', 'date'])
-# merge_data['label'] = merge_data.apply(lambda row: goals_toal_label(row), axis=1)
-# train_data = merge_data.drop(['home_team', 'away_team', 'date', 'id', 'match', 'home_goal', 'away_goal'], axis=1)
-# train_data.to_csv('../data/temp/' + 'f_ha_h_a_last_goals_toal' + '.csv')
-
-
-train()
-
-
-
 
