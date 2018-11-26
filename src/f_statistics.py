@@ -59,116 +59,33 @@ away_rank
 
 
 # 主队球队平均总进球数，平均总失球数，总的最大进球数，总的最大失球数，方差，中位数，最小进球数,吃牌,造牌
-def f_team(data,index,rank = None):
-    grp_home = data.groupby(['home_team','date_index'])
+def f_team(data,zk = 1):
+    if zk==1:
+        grp_home = data.groupby(['home_team'])
+    else:
+        grp_home = data.groupby(['away_team'])
     home_attack_f = grp_home.agg({'home_goal':['mean','std','median','max'],'footGoal_home':['mean','std','median','max'],'home_yellow':['mean','max'],'home_red':'mean'})
     home_defend_f = grp_home.agg({'away_goal':['mean','std','median','max'],'footGoal_away':['mean','std','median','max'],'away_yellow':['mean','max'],'away_red':'mean'})
     home_attack_f.columns = ["_".join(x) for x in home_attack_f.columns.ravel()]
     home_defend_f.columns = ["_".join(x) for x in home_defend_f.columns.ravel()]
     home_attack_f = home_attack_f.reset_index()
     home_defend_f = home_defend_f.reset_index()
-    home_f = pd.merge(home_attack_f, home_defend_f, how='inner', on=['home_team', 'date_index'])
+    home_f = pd.merge(home_attack_f, home_defend_f, how='inner', on=['home_team'])
     return home_f
-
-# 主队球队主场平均总进球数，平均总失球数，总的最大进球数，总的最大失球数，方差，中位数，最小进球数,吃牌,造牌
-def f_home_zk(data,index,rank = None):
-    def columns_rename(x):
-        if (x!='home_team') & (x!='date_index'):
-           return 'home_'+str(rank)+'_'+x+'_zk'
-        return x
-    data_totals = data[data['zk_flag']==1][['home_team','date','home_goal','away_goal','home_yellow','away_yellow','home_red','away_red','footGoal_home','footGoal_away']]
-    temp_total = pd.merge(index,data_totals,how='left',on=['home_team'])
-    temp_total = temp_total[temp_total['date_index']>temp_total['date']]
-    if rank is not None:
-        temp_total = temp_total.sort_values(by=['home_team','date'],ascending=False)
-        temp_total = temp_total.groupby(['home_team'],as_index=False).nth(list(range(rank)))
-    grp_home = temp_total.groupby(['home_team','date_index'])
-    home_attack_f = grp_home.agg({'home_goal':['mean','std','median','max'],'footGoal_home':['mean','std','median','max'],'home_yellow':['mean','max'],'home_red':'mean'})
-    home_defend_f = grp_home.agg({'away_goal':['mean','std','median','max'],'footGoal_away':['mean','std','median','max'],'away_yellow':['mean','max'],'away_red':'mean'})
-    home_attack_f.columns = ["_".join(x) for x in home_attack_f.columns.ravel()]
-    home_defend_f.columns = ["_".join(x) for x in home_defend_f.columns.ravel()]
-    home_attack_f = home_attack_f.reset_index()
-    home_defend_f = home_defend_f.reset_index()
-    home_f = pd.merge(home_attack_f, home_defend_f, how='inner', on=['home_team', 'date_index'])
-    home_f.columns = home_f.columns.map(lambda x:columns_rename(x))
-    return home_f
-
-
-# 客队球队平均总进球数，平均总失球数，总的最大进球数，总的最大失球数，方差，中位数，最小进球数,吃牌,造牌
-def f_away(data,index,rank=None):
-    def columns_rename(x):
-        if (x!='away_team') & (x!='date_index'):
-           return 'away_'+str(rank)+'_'+x
-        return x
-    data_totals = data[['away_team','date','home_goal','away_goal','home_yellow','away_yellow','home_red','away_red','footGoal_home','footGoal_away']]
-    temp_total = pd.merge(index,data_totals,how='left',on=['away_team'])
-    temp_total = temp_total[temp_total['date_index']>temp_total['date']]
-    if rank is not None:
-        temp_total = temp_total.sort_values(by=['away_team','date'],ascending=False)
-        temp_total = temp_total.groupby(['away_team'],as_index=False).nth(list(range(rank)))
-    grp_home = temp_total.groupby(['away_team','date_index'])
-    home_attack_f = grp_home.agg({'away_goal':['mean','std','median','max'],'footGoal_away':['mean','std','median','max'],'away_yellow':['mean','max'],'away_red':'mean'})
-    home_defend_f = grp_home.agg({'home_goal':['mean','std','median','max'],'footGoal_home':['mean','std','median','max'],'home_yellow':['mean','max'],'home_red':'mean'})
-    home_attack_f.columns = ["_".join(x) for x in home_attack_f.columns.ravel()]
-    home_defend_f.columns = ["_".join(x) for x in home_defend_f.columns.ravel()]
-    home_attack_f = home_attack_f.reset_index()
-    home_defend_f = home_defend_f.reset_index()
-    away_f = pd.merge(home_attack_f,home_defend_f,how='inner',on=['away_team','date_index'])
-    away_f.columns = away_f.columns.map(lambda x:columns_rename(x))
-    return away_f
-
-
-# 客队球队平均总进球数，平均总失球数，总的最大进球数，总的最大失球数，方差，中位数，最小进球数,吃牌,造牌
-def f_away_zk(data,index,rank=None):
-    def columns_rename(x):
-        if (x!='away_team') & (x!='date_index'):
-           return 'away_'+str(rank)+'_'+x+'_zk'
-        return x
-    data_totals = data[data['zk_flag']==1][['away_team','date','home_goal','away_goal','home_yellow','away_yellow','home_red','away_red','footGoal_home','footGoal_away']]
-    temp_total = pd.merge(index,data_totals,how='left',on=['away_team'])
-    temp_total = temp_total[temp_total['date_index']>temp_total['date']]
-    if rank is not None:
-        temp_total = temp_total.sort_values(by=['away_team', 'date'], ascending=False)
-        temp_total = temp_total.groupby(['away_team'], as_index=False).nth(list(range(rank)))
-    grp_home = temp_total.groupby(['away_team','date_index'])
-    home_attack_f = grp_home.agg({'away_goal':['mean','std','median','max'],'footGoal_away':['mean','std','median','max'],'away_yellow':['mean','max'],'away_red':'mean'})
-    home_defend_f = grp_home.agg({'home_goal':['mean','std','median','max'],'footGoal_home':['mean','std','median','max'],'home_yellow':['mean','max'],'home_red':'mean'})
-    home_attack_f.columns = ["_".join(x) for x in home_attack_f.columns.ravel()]
-    home_defend_f.columns = ["_".join(x) for x in home_defend_f.columns.ravel()]
-    home_attack_f = home_attack_f.reset_index()
-    home_defend_f = home_defend_f.reset_index()
-    away_f = pd.merge(home_attack_f,home_defend_f,how='inner',on=['away_team','date_index'])
-    away_f.columns = away_f.columns.map(lambda x:columns_rename(x))
-    return away_f
 
 
 # 考虑到上赛季的排名的特征
-def f_rank_home(data,index,rank=None):
-    def columns_rename(x):
-        if (x!='home_team') & (x!='date_index'):
-           return 'home_'+str(rank)+'_'+x
-        return x
-    data_totals = data[['home_team','date','home_goal','away_goal','home_yellow','away_yellow','home_red','away_red','footGoal_home','footGoal_away','last_split_score_home','last_split_score_away']]
-    temp_total = pd.merge(index,data_totals,how='left',on=['home_team'])
-    temp_total = temp_total[temp_total['date_index']>temp_total['date']]
-    if rank is not None:
-        temp_total = temp_total.sort_values(by=['home_team','date'],ascending=False)
-        temp_total = temp_total.groupby(['home_team'],as_index=False).nth(list(range(rank)))
-    max_score = temp_total['last_split_score_home'].max()
-    min_score = temp_total['last_split_score_home'].min()
-    minus_score = max_score-min_score
-    temp_total['net_score'] = minus_score - (temp_total['last_split_score_home'] - temp_total['last_split_score_away'])
-    temp_total['net_goal'] = temp_total['home_goal'] - temp_total['away_goal']
-    temp_total['net_foot_goal'] = temp_total['footGoal_home'] - temp_total['footGoal_away']
-    temp_total['rank_goal'] = temp_total['net_score']*temp_total['net_goal']
-    temp_total['rank_foot_goal'] = temp_total['net_score']*temp_total['net_foot_goal']
-    temp_total['rank_goal_norm'] = temp_total['net_score']*(temp_total['net_goal'] - temp_total['net_goal'].min())/(temp_total['net_goal'].max()-temp_total['net_goal'].min())
-
-
-    grp_home = temp_total.groupby(['home_team','date_index'])
-    rank_f = grp_home.agg({'rank_goal':['mean','std','median','max'],'rank_foot_goal':['mean','std','median','max',],'rank_goal_norm':['mean','std','max']})
+def f_rank_team(data):
+    data['net_goal'] = (data['home_goal'] / (data['home_goal'] + data['away_goal']+0.000001)).fillna(0)
+    data['net_score_old'] = (data['score_last_season_home'] / (data['score_last_season_home'] + data['score_last_season_away']+0.000001)).fillna(0)
+    data['net_score_new'] = (data['score_new_season_home'] / (data['score_new_season_home'] + data['score_new_season_away']+0.000001)).fillna(0)
+    data['net_score_new'] = data['net_score_new'].map(lambda x: 1 if x == 0 else x)
+    data['net_score_old'] = data['net_score_old'].map(lambda x: 1 if x == 0 else x)
+    data['old_rank'] = (data['net_goal']/(data['net_score_old'])).fillna(0)
+    data['new_rank'] = (data['net_goal']/(data['net_score_new'])).fillna(0)
+    grp_home = data.groupby(['home_team'])
+    rank_f = grp_home.agg({'old_rank':['mean','std','median','max'],'new_rank':['mean','std','median','max',],'net_goal':['mean','std','max']})
     rank_f.columns = ["_".join(x) for x in rank_f.columns.ravel()]
-    rank_f.columns = rank_f.columns.map(lambda x:columns_rename(x))
     return rank_f.reset_index()
 
 

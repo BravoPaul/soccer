@@ -44,12 +44,11 @@ def train(train_data,label):
 
 
 if __name__ == "__main__":
-    pd_train_data = pd.read_csv('../data/features/f_score/scores.csv')
+    pd_train_data = pd.read_csv('../data/train_data/train_data.csv')
     pd_label_data = pd_train_data['win_lose_label']
     del pd_train_data['home_team']
     del pd_train_data['away_team']
-    del pd_train_data['date_index']
-    del pd_train_data['total_goal_label']
+    del pd_train_data['date']
     del pd_train_data['win_lose_label']
     train(pd_train_data.values,pd_label_data.values)
 
