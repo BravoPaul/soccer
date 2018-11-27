@@ -52,7 +52,6 @@ class TrainProcessor:
             features = pd.merge(index,features,how='left',on=['home_team'])
             feature_statisc = pd.concat([feature_statisc,features],ignore_index=True)
             start = start+1
-            break
 
 
         feature_final =
