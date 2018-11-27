@@ -327,6 +327,7 @@ def train():
     del match['main_bet']
     del match['goals_bet']
     del match['footGoal_bet']
+    print(match.columns)
     train_data = match.values
 
     # 多分类
@@ -383,17 +384,17 @@ def goals_toal_label(x):
 
 #
 #
-f_home_away_d = f_home_away(yc_match_data)
-f_home_d = f_home(yc_match_data)
-f_away_d = f_away(yc_match_data)
+# f_home_away_d = f_home_away(yc_match_data)
+# f_home_d = f_home(yc_match_data)
+# f_away_d = f_away(yc_match_data)
 # f_temp = pd.merge(f_home_away_d, f_home_d, how='left', on=['home_team', 'date'])
 # f_ha_h_a = pd.merge(f_temp, f_away_d, how='left', on=['away_team', 'date'])
-#
-merge_data = pd.merge(f_ha_h_a, yc_match_data, how='left', on=['home_team', 'away_team', 'date'])
+# #
+# merge_data = pd.merge(f_ha_h_a, yc_match_data, how='left', on=['home_team', 'away_team', 'date'])
 # merge_data['label'] = merge_data.apply(lambda row: goals_toal_label(row), axis=1)
 # train_data = merge_data.drop(['home_team', 'away_team', 'date', 'id', 'match', 'home_goal', 'away_goal'], axis=1)
 # train_data.to_csv('../data/temp/' + 'f_ha_h_a_goals_toal' + '.csv')
-#
+# #
 
 #
 # # 上一个比赛季训练集制作

@@ -43,9 +43,9 @@ class TrainProcessor:
             feature_team_zk = fs.f_team(data_pro,0)
             feature_team_zk.columns = feature_team_zk.columns.map(lambda x: columns_rename(x, 5, 'zk'))
 
-            feature_team_rank = fs.f_rank_team(data_pro)
-            feature_team_rank.columns = feature_team_rank.columns.map(lambda x: columns_rename(x, 5, 'rank'))
-            feature_team_rank.set_index('home_team',inplace=True)
+            # feature_team_rank = fs.f_rank_team(data_pro)
+            # feature_team_rank.columns = feature_team_rank.columns.map(lambda x: columns_rename(x, 5, 'rank'))
+            # feature_team_rank.set_index('home_team',inplace=True)
 
             f_temp = pd.merge(index, feature_team, how='inner', on=['home_team'])
             f_temp = pd.merge(f_temp, feature_team, how='inner', on=['home_team'])
@@ -60,15 +60,15 @@ class TrainProcessor:
         feature_statisc_team.rename(columns={'home_team': 'away_team'}, inplace=True)
         feature_final = pd.merge(feature_final,feature_statisc_team,how='inner',on=['away_team','date'])
 
-        feature_statisc_zk_home = feature_statisc_zk[feature_statisc_zk['zk_flag']==1]
-        del feature_statisc_zk_home['zk_flag']
-        feature_final = pd.merge(feature_final, feature_statisc_zk_home, how='inner', on=['home_team', 'date'])
-        feature_statisc_zk_away = feature_statisc_zk[feature_statisc_zk['zk_flag']==0]
-        del feature_statisc_zk_away['zk_flag']
-        feature_statisc_zk_away.columns = feature_statisc_zk_away.columns.map(lambda x: columns_rename(x, '', 'a'))
-        feature_statisc_zk_away.rename(columns={'home_team': 'away_team'}, inplace=True)
-        feature_final = pd.merge(feature_final, feature_statisc_zk_away, how='inner', on=['away_team', 'date'])
-
+        # feature_statisc_zk_home = feature_statisc_zk[feature_statisc_zk['zk_flag']==1]
+        # del feature_statisc_zk_home['zk_flag']
+        # feature_final = pd.merge(feature_final, feature_statisc_zk_home, how='inner', on=['home_team', 'date'])
+        # feature_statisc_zk_away = feature_statisc_zk[feature_statisc_zk['zk_flag']==0]
+        # del feature_statisc_zk_away['zk_flag']
+        # feature_statisc_zk_away.columns = feature_statisc_zk_away.columns.map(lambda x: columns_rename(x, '', 'a'))
+        # feature_statisc_zk_away.rename(columns={'home_team': 'away_team'}, inplace=True)
+        # feature_final = pd.merge(feature_final, feature_statisc_zk_away, how='inner', on=['away_team', 'date'])
+        feature_final['saiji'] = saiji
         feature_final.to_csv('../data/features/f_state/f_states_'+str(saiji)+'.csv')
 
 
