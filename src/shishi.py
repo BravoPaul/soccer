@@ -33,12 +33,12 @@ print(list(os.walk('/Users/kunyue/project_personal/soccer/data/split_data')))
 # print(haha)
 
 
-# haha = pd.read_csv('/Users/kunyue/project_personal/soccer/data/split_data/data_17_17-08-12_17-11-24_data.csv')
-#
-# print(haha[haha['home_team']=='曼城'][['away_goal','home_team','away_team']])
-#
+# haha = pd.read_csv('/Users/kunyue/project_personal/soccer/data/英超/soccer/game_end.csv')
+
+# haha = haha[haha['away_team']=='切尔西'][['home_team','away_team','date','away_goal','home_goal']]
+
 # hehe = pd.read_csv('/Users/kunyue/project_personal/soccer/data/英超/soccer/game_end.csv')
 #
-# hehe = hehe[(hehe['date']>='17/08/12') & (hehe['date']<'17/11/24')]
-#
-# print(hehe[(hehe['home_team']=='曼城') | (hehe['away_team']=='曼城')][['home_goal','home_team','away_team','away_goal','date']])
+# hehe = hehe[(hehe['date']>='18/01/12') & (hehe['date']<'18/06/01')]
+# haha = hehe[(hehe['away_team']=='斯托克城') | (hehe['home_team']=='斯托克城') ][['home_team','away_team','date','away_goal','home_goal']]
+# print(haha)

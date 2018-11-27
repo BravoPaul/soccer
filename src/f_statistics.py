@@ -63,14 +63,17 @@ def f_team(data,zk = 1):
     if zk==1:
         grp_home = data.groupby(['home_team'])
     else:
-        grp_home = data.groupby(['away_team'])
+        grp_home = data.groupby(['home_team','zk_flag'])
     home_attack_f = grp_home.agg({'home_goal':['mean','std','median','max'],'footGoal_home':['mean','std','median','max'],'home_yellow':['mean','max'],'home_red':'mean'})
     home_defend_f = grp_home.agg({'away_goal':['mean','std','median','max'],'footGoal_away':['mean','std','median','max'],'away_yellow':['mean','max'],'away_red':'mean'})
     home_attack_f.columns = ["_".join(x) for x in home_attack_f.columns.ravel()]
     home_defend_f.columns = ["_".join(x) for x in home_defend_f.columns.ravel()]
     home_attack_f = home_attack_f.reset_index()
     home_defend_f = home_defend_f.reset_index()
-    home_f = pd.merge(home_attack_f, home_defend_f, how='inner', on=['home_team'])
+    if zk==1:
+        home_f = pd.merge(home_attack_f, home_defend_f, how='inner', on=['home_team'])
+    else:
+        home_f = pd.merge(home_attack_f, home_defend_f, how='inner', on=['home_team','zk_flag'])
     return home_f
 
 

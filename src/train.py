@@ -6,6 +6,7 @@ import xgboost as xgb
 from sklearn.metrics import confusion_matrix
 from sklearn import metrics
 import pandas as pd
+from sklearn.linear_model import LinearRegression
 from sklearn.decomposition import PCA
 
 
@@ -39,16 +40,17 @@ def train(train_data,label):
     print(confusion_matrix(ground_truth, pred))
     print("准确率：")
     print(metrics.accuracy_score(ground_truth, pred))
-
+6
 
 
 
 if __name__ == "__main__":
-    pd_train_data = pd.read_csv('../data/train_data/train_data.csv')
+    pd_train_data = pd.read_csv('/Users/kunyue/project_personal/soccer/data/train_data/train_data.csv')
     pd_label_data = pd_train_data['win_lose_label']
     del pd_train_data['home_team']
     del pd_train_data['away_team']
     del pd_train_data['date']
     del pd_train_data['win_lose_label']
+    pd_train_data = pd_train_data.fillna(0)
     train(pd_train_data.values,pd_label_data.values)
 
