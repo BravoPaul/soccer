@@ -31,34 +31,31 @@ class TrainProcessor:
                 break
             data_pro = match_data_o_sorted.groupby(['home_team'],as_index=False).nth(list(range(start,start+5)))
             data_pro_zk = data_pro[data_pro['zk_flag']==1]
-            index = match_data_o_sorted[['home_team','date']].groupby(['home_team'],as_index=False).nth(list(range(start+5,start+6)))
+            index = match_data_o_sorted[['home_team','date','zk_flag']].groupby(['home_team'],as_index=False).nth(list(range(start+5,start+6)))
 
             feature_team = fs.f_team(data_pro)
             feature_team.columns = feature_team.columns.map(lambda x: columns_rename(x,5,'team'))
-            feature_team.set_index('home_team',inplace=True)
 
             # 所有队伍坐镇主场的信息
             feature_team_zk = fs.f_team(data_pro_zk)
             feature_team_zk.columns = feature_team_zk.columns.map(lambda x: columns_rename(x, 5, 'zk'))
-            feature_team_zk.set_index('home_team',inplace=True)
             # 所有队伍坐镇客场的信息
             feature_team_zk_0 = fs.f_team(data_pro_zk,0)
             feature_team_zk_0.columns = feature_team_zk_0.columns.map(lambda x: columns_rename(x, 5, 'zk'))
-            feature_team_zk_0.rename(columns = {'away_team':'home_team'},inplace=True)
-            feature_team_zk_0.set_index('home_team', inplace=True)
 
             feature_team_rank = fs.f_rank_team(data_pro)
             feature_team_rank.columns = feature_team_rank.columns.map(lambda x: columns_rename(x, 5, 'rank'))
-            feature_team_rank.set_index('home_team',inplace=True)
 
-            features = pd.concat([feature_team,feature_team_rank,feature_team_zk,feature_team_zk_0],axis=1)
+            f_temp = pd.merge(index, feature_team, how='inner', on=['home_team'])
+            f_temp = pd.merge(f_temp, feature_team, how='inner', on=['home_team'])
+
             features = pd.merge(index,features,how='left',on=['home_team'])
             feature_statisc = pd.concat([feature_statisc,features],ignore_index=True)
             start = start+1
             break
 
 
-        feature_final = pd.merge(index_o,feature_statisc,how='inner',on=['home_team','date'])
+        feature_final =
         feature_statisc.columns = feature_statisc.columns.map(lambda x:columns_rename(x,'','a'))
         feature_statisc.rename(columns={'home_team': 'away_team'}, inplace=True)
         feature_final = pd.merge(feature_final,feature_statisc,how='inner',on=['away_team','date'])
